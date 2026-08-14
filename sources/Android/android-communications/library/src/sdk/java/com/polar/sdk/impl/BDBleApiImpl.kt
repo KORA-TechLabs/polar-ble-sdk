@@ -3437,28 +3437,40 @@ class BDBleApiImpl private constructor(context: Context, features: Set<PolarBleS
                         BleBattClient.BATTERY_SERVICE -> {
                             val bleBattClient = client as BleBattClient
                             launch {
-                                bleBattClient.monitorBatteryStatus(true)
-                                    .collect { level ->
-                                        withContext(Dispatchers.Main) {
-                                            if (deviceId != null) callback?.batteryLevelReceived(deviceId, level)
+                                try {
+                                    bleBattClient.monitorBatteryStatus(true)
+                                        .collect { level ->
+                                            withContext(Dispatchers.Main) {
+                                                if (deviceId != null) callback?.batteryLevelReceived(deviceId, level)
+                                            }
                                         }
-                                    }
+                                } catch (error: Throwable) {
+                                    BleLogger.e(TAG, "Battery status notification error: $error")
+                                }
                             }
                             launch {
-                                bleBattClient.monitorChargingStatus(true)
-                                    .collect { state ->
-                                        withContext(Dispatchers.Main) {
-                                            if (deviceId != null) callback?.batteryChargingStatusReceived(deviceId, state)
+                                try {
+                                    bleBattClient.monitorChargingStatus(true)
+                                        .collect { state ->
+                                            withContext(Dispatchers.Main) {
+                                                if (deviceId != null) callback?.batteryChargingStatusReceived(deviceId, state)
+                                            }
                                         }
-                                    }
+                                } catch (error: Throwable) {
+                                    BleLogger.e(TAG, "Battery charging status notification error: $error")
+                                }
                             }
                             launch {
-                                bleBattClient.monitorPowerSourcesState(true)
-                                    .collect { state ->
-                                        withContext(Dispatchers.Main) {
-                                            if (deviceId != null) callback?.powerSourcesStateReceived(deviceId, state)
+                                try {
+                                    bleBattClient.monitorPowerSourcesState(true)
+                                        .collect { state ->
+                                            withContext(Dispatchers.Main) {
+                                                if (deviceId != null) callback?.powerSourcesStateReceived(deviceId, state)
+                                            }
                                         }
-                                    }
+                                } catch (error: Throwable) {
+                                    BleLogger.e(TAG, "Power sources state notification error: $error")
+                                }
                             }
                         }
                         BlePMDClient.PMD_SERVICE -> {
@@ -3477,20 +3489,28 @@ class BDBleApiImpl private constructor(context: Context, features: Set<PolarBleS
                         BleDisClient.DIS_SERVICE -> {
                             val bleDisClient = client as BleDisClient
                             launch {
-                                bleDisClient.observeDisInfo(true)
-                                    .collect { pair ->
-                                        withContext(Dispatchers.Main) {
-                                            if (deviceId != null) callback?.disInformationReceived(deviceId, pair.first!!, pair.second!!)
+                                try {
+                                    bleDisClient.observeDisInfo(true)
+                                        .collect { pair ->
+                                            withContext(Dispatchers.Main) {
+                                                if (deviceId != null) callback?.disInformationReceived(deviceId, pair.first!!, pair.second!!)
+                                            }
                                         }
-                                    }
+                                } catch (error: Throwable) {
+                                    BleLogger.e(TAG, "DIS notification error: $error")
+                                }
                             }
                             launch {
-                                bleDisClient.observeDisInfoWithKeysAsStrings(true)
-                                    .collect { disInfo ->
-                                        withContext(Dispatchers.Main) {
-                                            if (deviceId != null) callback?.disInformationReceived(deviceId, disInfo)
+                                try {
+                                    bleDisClient.observeDisInfoWithKeysAsStrings(true)
+                                        .collect { disInfo ->
+                                            withContext(Dispatchers.Main) {
+                                                if (deviceId != null) callback?.disInformationReceived(deviceId, disInfo)
+                                            }
                                         }
-                                    }
+                                } catch (error: Throwable) {
+                                    BleLogger.e(TAG, "DIS notification error: $error")
+                                }
                             }
                         }
                         BlePsFtpUtils.RFC77_PFTP_SERVICE -> {
@@ -3503,15 +3523,19 @@ class BDBleApiImpl private constructor(context: Context, features: Set<PolarBleS
                         HealthThermometer.HTS_SERVICE -> {
                             val bleHtsClient = client as BleHtsClient
                             launch {
-                                bleHtsClient.observeHtsNotifications(true)
-                                    .collect { data ->
-                                        withContext(Dispatchers.Main) {
-                                            if (deviceId != null) callback?.htsNotificationReceived(
-                                                deviceId,
-                                                PolarHealthThermometerData(data.temperatureCelsius, data.temperatureFahrenheit)
-                                            )
+                                try {
+                                    bleHtsClient.observeHtsNotifications(true)
+                                        .collect { data ->
+                                            withContext(Dispatchers.Main) {
+                                                if (deviceId != null) callback?.htsNotificationReceived(
+                                                    deviceId,
+                                                    PolarHealthThermometerData(data.temperatureCelsius, data.temperatureFahrenheit)
+                                                )
+                                            }
                                         }
-                                    }
+                                } catch (error: Throwable) {
+                                    BleLogger.e(TAG, "HTS notification error: $error")
+                                }
                             }
                         }
                     }
