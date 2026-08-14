@@ -9,8 +9,20 @@ plugins {
 import java.util.regex.Pattern
 
 def getVersion = { ->
+    // JitPack builds a specific commit SHA (not a branch/tag checkout) from a clone that doesn't
+    // carry tag objects, so `git describe --tags` fails there (exit 128) regardless of what's
+    // pushed to the remote - confirmed against a real JitPack build log, not just guessed. That
+    // failure used to propagate straight out of providers.exec's ExecOutput accessors below and
+    // fail the whole configuration phase before publishing ever got a chance to fall back to the
+    // `-Pversion` property JitPack always passes alongside `-Pgroup`. ignoreExitValue + checking
+    // exitValue first keeps the normal (tagged, full-history) local/CI path unchanged while giving
+    // JitPack's shallow build a way to survive.
     def result = providers.exec {
         commandLine 'git', 'describe', '--tags'
+        ignoreExitValue = true
+    }
+    if (result.result.get().exitValue != 0) {
+        return providers.gradleProperty('version').getOrElse('0.0.0-unknown')
     }
     def stdout = result.standardOutput.asText.get().trim()
     def pattern = Pattern.compile("^([0-9]*)(\\.)([0-9]*)(\\.)([0-9]*)")
